@@ -1,0 +1,454 @@
+import React, { useState } from 'react';
+import { ChevronDown, ChevronRight, Download, AlertCircle } from 'lucide-react';
+
+const AppReviewChecker = () => {
+  const [version, setVersion] = useState('');
+  const [expanded, setExpanded] = useState({});
+  const [status, setStatus] = useState({}); // 'complete', 'incomplete', or null
+
+  const guidelines = [
+    { id: '1.1', desc: 'Objectionable Content: Apps should not include content that is offensive, insensitive, upsetting, intended to disgust, in exceptionally poor taste, or just plain creepy.' },
+    { id: '1.1.1', desc: 'Defamatory, discriminatory, or mean-spirited content, including references or commentary about religion, race, sexual orientation, gender, national/ethnic origin, or other targeted groups, particularly if the app is likely to humiliate, intimidate, or harm a targeted individual or group.' },
+    { id: '1.1.2', desc: 'Realistic portrayals of people or animals being killed, maimed, tortured, or abused, or content that encourages violence. "Enemies" within the context of a game cannot solely target a specific race, culture, real government, corporation, or any other real entity.' },
+    { id: '1.1.3', desc: 'Depictions that encourage illegal or reckless use of weapons and dangerous objects, or facilitate the purchase of firearms or ammunition.' },
+    { id: '1.1.4', desc: 'Overtly sexual or pornographic material, defined by Webster\'s Dictionary as "explicit descriptions or displays of sexual organs or activities intended to stimulate erotic rather than aesthetic or emotional feelings."' },
+    { id: '1.1.5', desc: 'Inflammatory religious commentary or inaccurate or misleading quotations of religious texts.' },
+    { id: '1.1.6', desc: 'False information and features, including inaccurate device data or trick/joke functionality, such as fake location trackers. Stating that the app is "for entertainment purposes" won\'t overcome this guideline.' },
+    { id: '1.1.7', desc: 'App Store reviews that are not in compliance with the App Store Review Guidelines, such as manipulative reviews or incentivized reviews.' },
+    { id: '1.2', desc: 'User Generated Content: Apps with user-generated content present particular challenges, ranging from intellectual property infringement to anonymous bullying. To prevent abuse, apps with user-generated content or social networking services must include: a method for filtering objectionable material, a mechanism to report offensive content, the ability to block abusive users, and published contact information.' },
+    { id: '1.3', desc: 'Kids Category: The Kids Category is a great way for parents to easily find apps that are designed for children. If you want to participate in the Kids Category, you should focus on creating a great experience specifically for younger users.' },
+    { id: '1.4', desc: 'Physical Harm: If your app behaves in a way that risks physical harm, we may reject it.' },
+    { id: '1.4.1', desc: 'Medical apps that could provide inaccurate data or information, or that could be used for diagnosing or treating patients may be reviewed with greater scrutiny.' },
+    { id: '1.4.2', desc: 'Drug dosage calculators must be submitted by the drug manufacturer, a hospital, university, health insurance company, pharmacy or other approved entity, or receive approval by the FDA or one of its international counterparts.' },
+    { id: '1.4.3', desc: 'Apps that encourage consumption of tobacco and vape products, illegal drugs, or excessive amounts of alcohol are not permitted on the App Store.' },
+    { id: '1.4.4', desc: 'Apps should not encourage minors to consume any of these substances. Facilitating the sale of controlled substances (except for licensed pharmacies), marijuana, or tobacco is not allowed.' },
+    { id: '1.4.5', desc: 'Apps should only display DUI checkpoints that are published by law enforcement agencies, and should never encourage drunk driving or other reckless behavior such as excessive speed.' },
+    { id: '1.5', desc: 'Developer Information: People need to know how to reach you with questions and support issues. Make sure your support URL includes an easy way to contact you.' },
+    { id: '1.6', desc: 'Data Security: Apps should implement appropriate security measures to ensure proper handling of user information collected pursuant to Apple\'s App Store Review Guidelines and prevent its unauthorized use, disclosure, or access by third parties.' },
+    { id: '1.7', desc: 'Reporting Criminal Activity: Apps that include the ability to make donations to recognized charitable organizations must be free. Apps that facilitate person-to-person payments may be subject to additional review.' },
+    { id: '2.1', desc: 'App Completeness: Submissions to App Review, including apps you make available for pre-order, should be final versions with all necessary metadata and fully functional URLs included.' },
+    { id: '2.2', desc: 'Beta Testing: Demos, betas, and trial versions of your app don\'t belong on the App Store – use TestFlight instead.' },
+    { id: '2.3', desc: 'Accurate Metadata: Customers should know what they\'re getting when they download or buy your app, so make sure all your app metadata, including privacy information, your app description, screenshots, and previews accurately reflect the app\'s core experience.' },
+    { id: '2.3.1', desc: 'Don\'t include any hidden or undocumented features in your app; your app\'s functionality should be clear to end users and App Review.' },
+    { id: '2.3.2', desc: 'If your app includes in-app purchases, make sure your app description, screenshots, and previews clearly indicate whether any featured items, levels, subscriptions, etc. require additional purchases.' },
+    { id: '2.3.3', desc: 'Screenshots should show the app in use, and not merely the title art, login page, or splash screen.' },
+    { id: '2.3.4', desc: 'Previews are a great way for customers to see what your app looks like and what it does. To ensure people understand what they\'ll be getting with your app, previews may only use video screen captures of the app itself.' },
+    { id: '2.3.5', desc: 'Select the most appropriate category for your app, and check out the App Store Category Definitions if you need help.' },
+    { id: '2.3.6', desc: 'Answer the age rating questions in App Store Connect honestly so that your app aligns properly with parental controls.' },
+    { id: '2.3.7', desc: 'Choose a unique app name, assign keywords that accurately describe your app, and don\'t try to pack any of your metadata with trademarked terms, popular app names, pricing information, or other irrelevant phrases just to game the system.' },
+    { id: '2.3.8', desc: 'Metadata should be appropriate for all audiences, so make sure your app and in-app purchase icons, screenshots, and previews adhere to a 4+ age rating even if your app is rated higher.' },
+    { id: '2.3.9', desc: 'You are responsible for securing the rights to use all materials in your app icons, screenshots, and previews, and you should display fictional account information instead of data from a real person.' },
+    { id: '2.3.10', desc: 'Make sure your app is focused on the iOS, Mac, Apple TV or Apple Watch experience, and don\'t include names, icons, or imagery of other mobile platforms in your app or metadata.' },
+    { id: '2.3.11', desc: 'Apps you submit for pre-order on the App Store must be complete and deliverable as submitted. Make sure the app you ultimately release is not materially different from what you advertise while the app is in pre-order state.' },
+    { id: '2.3.12', desc: 'Apps must clearly describe new features and product changes in their "What\'s New" text. Simple bug fixes, security updates, and performance improvements may rely on a generic description, but more significant changes must be listed in the notes.' },
+    { id: '2.3.13', desc: 'Apps with ultra-rare or hard-to-reproduce bugs that crash or exhibit negative behavior may be rejected. Ensure your app has been thoroughly tested on a variety of devices.' },
+    { id: '2.3.14', desc: 'App Previews that include content played or streamed via the app (e.g. iTunes movies, YouTube videos, Spotify streams) must be captured from the app itself and may not contain explicit references to or marketing of another content service.' },
+    { id: '2.3.15', desc: 'Ensure all app metadata, including age ratings, is correctly categorized and localized for all regions where your app is available.' },
+    { id: '2.4', desc: 'Hardware Compatibility: To ensure people get the most out of your app, iPhone apps should run on iPad whenever possible.' },
+    { id: '2.4.1', desc: 'Apps should use APIs and frameworks for their intended purposes and indicate that integration in their app description.' },
+    { id: '2.4.2', desc: 'Design your app to use power efficiently. Apps should not rapidly drain battery, generate excessive heat, or put unnecessary strain on device resources.' },
+    { id: '2.4.3', desc: 'Apps should continue to function properly in regions with no Apple TV, Apple Music service, or iCloud availability.' },
+    { id: '2.4.4', desc: 'Apps should never suggest or require a restart of the device or modifications to system settings unrelated to the core functionality of the app.' },
+    { id: '2.4.5', desc: 'Apps distributed via the Mac App Store have some additional requirements to keep in mind.' },
+    { id: '2.5', desc: 'Software Requirements: Apps may only use public APIs and must run on the currently shipping OS.' },
+    { id: '2.5.1', desc: 'Apps may only use public APIs and must run on the currently shipping OS. Learn more about public APIs.' },
+    { id: '2.5.2', desc: 'Apps should be self-contained in their bundles, and may not read or write data outside the designated container area.' },
+    { id: '2.5.3', desc: 'Apps that transmit viruses, files, computer code, or programs that may harm or disrupt the normal operation of the operating system and/or hardware features may be rejected.' },
+    { id: '2.5.4', desc: 'Multitasking apps may only use background services for their intended purposes: VoIP, audio playback, location, task completion, local notifications, etc.' },
+    { id: '2.5.5', desc: 'Apps that use location-based APIs must provide value to the user in a way that is directly relevant to the features and services provided by the app.' },
+    { id: '2.5.6', desc: 'Apps that browse the web must use the appropriate WebKit framework and WebKit Javascript.' },
+    { id: '2.5.7', desc: 'Video streaming content over a cellular network longer than 10 minutes must use HTTP Live Streaming and include a baseline 192 kbps HTTP Live stream.' },
+    { id: '2.5.8', desc: 'Apps that create alternate desktop/home screen environments or simulate multi-app widget experiences will be rejected.' },
+    { id: '2.5.9', desc: 'Apps that alter or disable the functions of standard switches, such as the Volume Up/Down and Ring/Silent switches, or other native user interface elements or behaviors will be rejected.' },
+    { id: '2.5.10', desc: 'Apps should run on the currently shipping OS and may not use deprecated or optionally installed technologies.' },
+    { id: '2.5.11', desc: 'SiriKit and Shortcuts: Apps integrating SiriKit and Shortcuts should only sign up for intents they can handle without the support of an additional app.' },
+    { id: '2.5.12', desc: 'Apps using CallKit or including an SMS Fraud Extension should only block phone numbers that are confirmed spam.' },
+    { id: '2.5.13', desc: 'Apps using facial recognition for account authentication must use LocalAuthentication where possible, and must use an alternate authentication method for users under 13 years old.' },
+    { id: '2.5.14', desc: 'Apps must request explicit user consent and provide a clear visual and/or audible indicator when recording, logging, or otherwise making a record of user activity.' },
+    { id: '2.5.15', desc: 'Apps that enable users to view and select files should include items from the Files app and the user\'s iCloud documents.' },
+    { id: '2.5.16', desc: 'Apps may facilitate transmission of approved virtual currencies (e.g. Bitcoin, DogeCoin) provided that they do so in compliance with all state and federal laws for the territories in which the app functions.' },
+    { id: '2.5.17', desc: 'Apps may facilitate person-to-person payments for physical goods and services, digital content, or charitable donations.' },
+    { id: '2.5.18', desc: 'Apps may support approved cryptocurrencies in specific circumstances.' },
+    { id: '3.1', desc: 'Payments: Use the in-app purchase API to unlock features and functionality within your app.' },
+    { id: '3.1.1', desc: 'In-App Purchase: If you want to unlock features or functionality within your app, you must use in-app purchase.' },
+    { id: '3.1.2', desc: 'Subscriptions: Apps may offer auto-renewing in-app purchase subscriptions, regardless of category on the App Store.' },
+    { id: '3.1.3', desc: 'Other Purchase Methods: The following apps may use purchase methods other than in-app purchase.' },
+    { id: '3.1.4', desc: 'Hardware-Specific Content: Apps may facilitate transactions or transmissions of content related to physical products.' },
+    { id: '3.1.5', desc: 'Cryptocurrencies: Apps may facilitate transactions or transmissions of cryptocurrency on an approved exchange.' },
+    { id: '3.2', desc: 'Other Business Model Issues: The lists below are not exhaustive, and your submission may trigger a change or update to our policies.' },
+    { id: '3.2.1', desc: 'Acceptable: Apps that are free or make use of a freemium business model may be offered on the App Store.' },
+    { id: '3.2.2', desc: 'Unacceptable: Artificially manipulating a user\'s visibility, status, or rank on other services unless permitted by that service\'s Terms and Conditions.' },
+    { id: '4.1', desc: 'Copycats: Come up with your own ideas. We know you have them, so make yours come to life. Don\'t simply copy the latest popular app on the App Store, or make some minor changes to another app\'s name or UI and pass it off as your own.' },
+    { id: '4.2', desc: 'Minimum Functionality: Your app should include features, content, and UI that elevate it beyond a repackaged website.' },
+    { id: '4.2.1', desc: 'Apps should use APIs and frameworks for their intended purposes and indicate that integration in their app description.' },
+    { id: '4.2.2', desc: 'Apps should use standard iOS, iPadOS, macOS, tvOS, visionOS, and watchOS buttons and icons when possible.' },
+    { id: '4.2.3', desc: 'Apps that are simply a song or movie should be submitted to the iTunes Store. Apps that are simply a book or game guide should be submitted to the Apple Books Store.' },
+    { id: '4.2.4', desc: 'Apps that are primarily iCloud and iCloud Drive file managers need to include additional app functionality to be approved.' },
+    { id: '4.2.5', desc: 'Apps that are primarily marketing materials or advertisements will be rejected.' },
+    { id: '4.2.6', desc: 'Apps created from a commercialized template or app generation service will be rejected unless they are submitted directly by the provider of the app\'s content.' },
+    { id: '4.3', desc: 'Spam: Don\'t create multiple Bundle IDs of the same app. If your app has different versions for specific locations, sports teams, universities, etc., consider submitting a single app and provide the variations using in-app purchase.' },
+    { id: '4.4', desc: 'Extensions: Apps hosting or containing extensions must comply with the App Extension Programming Guide or the Safari App Extensions Guide.' },
+    { id: '4.4.1', desc: 'Keyboard extensions have some additional rules.' },
+    { id: '4.4.2', desc: 'Safari extensions must run on the current version of Safari on macOS.' },
+    { id: '4.4.3', desc: 'Stickers: Stickers are a great way to make Messages more dynamic and fun.' },
+    { id: '4.5', desc: 'Apple Sites and Services: Apps may use approved Apple RSS feeds such as iTunes Store RSS feeds, but may not scrape any information from Apple sites.' },
+    { id: '4.5.1', desc: 'Apps may use approved Apple RSS feeds such as the iTunes Store RSS feeds.' },
+    { id: '4.5.2', desc: 'Apple Music: Apps may use the MusicKit APIs to access Apple Music, and display a user\'s playlists.' },
+    { id: '4.5.3', desc: 'Do not use protected Apple designs, features, or marketing materials in your app or metadata unless explicitly permitted by Apple.' },
+    { id: '4.5.4', desc: 'Apple Podcasts: Apps may integrate Apple Podcasts to play podcast content.' },
+    { id: '4.5.5', desc: 'Location services: Use the MapKit framework for mapping; use the Core Location framework for navigation.' },
+    { id: '4.5.6', desc: 'Apple Pay: Apps using Apple Pay must provide all material purchase information to the user prior to sale.' },
+    { id: '4.6', desc: 'Alternate App Icons: Apps may display customized icons, for example, to reflect a sports team preference.' },
+    { id: '4.7', desc: 'HTML5 Games, Bots, etc.: Apps may contain or run code that is not embedded in the binary (e.g. HTML5-based games, bots, etc.), as long as code distribution isn\'t the main purpose of the app.' },
+    { id: '4.8', desc: 'Sign in with Apple: Sign in with Apple provides a fast, private way to sign into apps and websites, giving people a consistent experience they can trust.' },
+    { id: '4.9', desc: 'Streaming Games: Apps may provide access to streaming games, provided that they adhere to certain requirements.' },
+    { id: '5.1', desc: 'Privacy: Protecting user privacy is paramount in the Apple ecosystem.' },
+    { id: '5.1.1', desc: 'Data Collection and Storage: Apps must comply with all applicable privacy laws around the world relating to the collection of data from users.' },
+    { id: '5.1.2', desc: 'Data Use and Sharing: Apps should only request access to data that is relevant to the core functionality of the app.' },
+    { id: '5.1.3', desc: 'Health and Health Research: Apps that provide health-related services must ensure that users understand they are sharing their health information.' },
+    { id: '5.1.4', desc: 'Kids: For many reasons, it is critical to use care when dealing with personal data from kids.' },
+    { id: '5.1.5', desc: 'Location Services: Use Location Services in your app only when it is directly relevant to the features and services provided by the app.' },
+    { id: '5.2', desc: 'Intellectual Property: Make sure your app only includes content that you created or that you have a license to use.' },
+    { id: '5.2.1', desc: 'Generally: Don\'t use protected third-party material such as trademarks, copyrighted works, or patented ideas in your app without permission.' },
+    { id: '5.2.2', desc: 'Third-Party Sites/Services: If your app uses, accesses, monetizes access to, or displays content from a third-party service, ensure that you are specifically permitted to do so under the service\'s terms of use.' },
+    { id: '5.2.3', desc: 'Audio/Video Downloading: Apps should not facilitate illegal file sharing or include the ability to save, convert, or download media from third-party sources without explicit authorization.' },
+    { id: '5.2.4', desc: 'Apple Endorsements: Don\'t suggest or imply that Apple is a source or supplier of the App, or that Apple endorses any particular representation regarding quality or functionality.' },
+    { id: '5.2.5', desc: 'Apple Products: Don\'t create an app that appears confusingly similar to an existing Apple product, interface, or advertising theme.' },
+    { id: '5.3', desc: 'Gaming, Gambling, and Lotteries: Gambling, gaming, and lotteries can be tricky to manage and tend to be one of the most regulated offerings on the App Store.' },
+    { id: '5.3.1', desc: 'Sweepstakes and contests must be sponsored by the developer of the app.' },
+    { id: '5.3.2', desc: 'Official rules for sweepstakes, contests, and raffles must be presented in the app.' },
+    { id: '5.3.3', desc: 'Apps that offer real money gaming (e.g. sports betting, poker, casino games, horse racing) or lotteries must have necessary licensing and permissions.' },
+    { id: '5.3.4', desc: 'Apps that offer real money gaming must restrict usage to ages 18+.' },
+    { id: '5.4', desc: 'VPN Apps: Apps offering VPN services must utilize the NEVPNManager API and may only be offered by developers enrolled as an organization.' },
+    { id: '5.5', desc: 'Developer Code of Conduct: Please treat everyone with respect, whether in your responses to App Review, customer reviews, or your communications with Apple.' },
+    { id: '5.6', desc: 'Developer Advertising: Developers can advertise their apps in other apps, but may not include ads or promotions inside the app itself unless permitted under other sections of these guidelines.' }
+  ];
+
+  const toggleExpand = (id) => {
+    setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const setItemStatus = (id, newStatus) => {
+    setStatus(prev => ({ ...prev, [id]: newStatus }));
+  };
+
+  const exportToPDF = () => {
+    const completeItems = Object.entries(status).filter(([_, s]) => s === 'complete');
+    const incompleteItems = Object.entries(status).filter(([_, s]) => s === 'incomplete');
+    const notReviewedItems = guidelines.filter(g => !status[g.id]);
+    
+    let reportContent = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>App Review Checklist - v${version}</title>
+  <style>
+    @media print {
+      body { margin: 0; padding: 20px; }
+      .no-print { display: none; }
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 20px;
+      line-height: 1.6;
+      color: #1d1d1f;
+    }
+    h1 {
+      color: #1d1d1f;
+      border-bottom: 3px solid #0071e3;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+    h2 {
+      color: #1d1d1f;
+      margin-top: 30px;
+      margin-bottom: 15px;
+      font-size: 1.3em;
+    }
+    .meta {
+      background: #f5f5f7;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    .meta p {
+      margin: 5px 0;
+    }
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin: 20px 0;
+    }
+    .summary-card {
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .summary-card h3 {
+      font-size: 2em;
+      margin: 0 0 5px 0;
+    }
+    .summary-card p {
+      margin: 0;
+      font-size: 0.9em;
+    }
+    .complete-card { background: #d1f4e0; color: #1e7e34; }
+    .incomplete-card { background: #ffe5e5; color: #c82333; }
+    .not-reviewed-card { background: #fff3cd; color: #856404; }
+    .item {
+      padding: 12px 0;
+      border-bottom: 1px solid #e5e5e5;
+    }
+    .item-id {
+      font-weight: 600;
+      margin-right: 8px;
+      color: #0071e3;
+    }
+    .item-desc {
+      color: #1d1d1f;
+      margin-top: 5px;
+      display: block;
+    }
+    .check { color: #34c759; font-weight: bold; margin-right: 8px; }
+    .cross { color: #ff3b30; font-weight: bold; margin-right: 8px; }
+    .warning { color: #ff9500; font-weight: bold; margin-right: 8px; }
+    .footer {
+      margin-top: 50px;
+      padding-top: 20px;
+      border-top: 1px solid #d2d2d7;
+      color: #86868b;
+      font-size: 0.9em;
+    }
+    .section {
+      margin: 30px 0;
+      page-break-inside: avoid;
+    }
+    .print-button {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 24px;
+      background: #0071e3;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .print-button:hover {
+      background: #0077ED;
+    }
+  </style>
+</head>
+<body>
+  <button class="print-button no-print" onclick="window.print()">🖨️ Print / Save as PDF</button>
+  
+  <h1>App Store Review Guidelines Checklist</h1>
+  <div class="meta">
+    <p><strong>Version:</strong> ${version || 'Not specified'}</p>
+    <p><strong>Date:</strong> ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+  </div>
+  
+  <div class="summary">
+    <div class="summary-card complete-card">
+      <h3>${completeItems.length}</h3>
+      <p>Complete</p>
+    </div>
+    <div class="summary-card incomplete-card">
+      <h3>${incompleteItems.length}</h3>
+      <p>Incomplete</p>
+    </div>
+    <div class="summary-card not-reviewed-card">
+      <h3>${notReviewedItems.length}</h3>
+      <p>Not Reviewed</p>
+    </div>
+  </div>
+`;
+
+    if (incompleteItems.length > 0) {
+      reportContent += `
+  <div class="section">
+    <h2>⚠️ Incomplete Items (Requires Attention)</h2>`;
+      incompleteItems.forEach(([id, _]) => {
+        const item = guidelines.find(g => g.id === id);
+        if (item) {
+          reportContent += `
+    <div class="item">
+      <span class="cross">✗</span>
+      <span class="item-id">${item.id}</span>
+      <span class="item-desc">${item.desc}</span>
+    </div>`;
+        }
+      });
+      reportContent += `
+  </div>`;
+    }
+
+    if (completeItems.length > 0) {
+      reportContent += `
+  <div class="section">
+    <h2>✓ Complete Items</h2>`;
+      completeItems.forEach(([id, _]) => {
+        const item = guidelines.find(g => g.id === id);
+        if (item) {
+          reportContent += `
+    <div class="item">
+      <span class="check">✓</span>
+      <span class="item-id">${item.id}</span>
+      <span class="item-desc">${item.desc}</span>
+    </div>`;
+        }
+      });
+      reportContent += `
+  </div>`;
+    }
+
+    if (notReviewedItems.length > 0) {
+      reportContent += `
+  <div class="section">
+    <h2>⏸ Not Yet Reviewed</h2>`;
+      notReviewedItems.forEach((item) => {
+        reportContent += `
+    <div class="item">
+      <span class="warning">○</span>
+      <span class="item-id">${item.id}</span>
+      <span class="item-desc">${item.desc}</span>
+    </div>`;
+      });
+      reportContent += `
+  </div>`;
+    }
+
+    reportContent += `
+  <div class="footer">
+    <p>This checklist is based on Apple's App Store Review Guidelines</p>
+    <p>Reference: https://developer.apple.com/app-store/review/guidelines/</p>
+  </div>
+</body>
+</html>`;
+
+    const printWindow = window.open('', '_blank', 'width=900,height=800');
+    if (printWindow) {
+      printWindow.document.write(reportContent);
+      printWindow.document.close();
+    } else {
+      alert('Please allow pop-ups to export the PDF report.');
+    }
+  };
+
+  const completeCount = Object.values(status).filter(s => s === 'complete').length;
+  const incompleteCount = Object.values(status).filter(s => s === 'incomplete').length;
+  const notReviewedCount = guidelines.length - completeCount - incompleteCount;
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-8">
+      <div className="max-w-5xl mx-auto">
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+          <h1 className="text-3xl font-bold text-gray-900 mb-6">App Store Review Guidelines Checker</h1>
+          
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              App Version Number
+            </label>
+            <input
+              type="text"
+              value={version}
+              onChange={(e) => setVersion(e.target.value)}
+              placeholder="e.g., 1.2.5"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+              <div className="text-2xl font-bold text-green-700">{completeCount}</div>
+              <div className="text-sm text-green-600">Complete</div>
+            </div>
+            <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+              <div className="text-2xl font-bold text-red-700">{incompleteCount}</div>
+              <div className="text-sm text-red-600">Incomplete</div>
+            </div>
+            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+              <div className="text-2xl font-bold text-yellow-700">{notReviewedCount}</div>
+              <div className="text-sm text-yellow-600">Not Reviewed</div>
+            </div>
+          </div>
+
+          <button
+            onClick={exportToPDF}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium"
+          >
+            <Download size={20} />
+            Export to PDF
+          </button>
+
+          {incompleteCount > 0 && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+              <AlertCircle className="text-red-600 flex-shrink-0 mt-0.5" size={20} />
+              <div className="text-sm text-red-700">
+                <strong>Warning:</strong> You have {incompleteCount} incomplete {incompleteCount === 1 ? 'item' : 'items'} that need attention before release.
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          {guidelines.map((guideline) => (
+            <div key={guideline.id} className="bg-white rounded-lg shadow-sm overflow-hidden">
+              <div className="flex items-center gap-3 p-4">
+                <button
+                  onClick={() => toggleExpand(guideline.id)}
+                  className="flex items-center justify-center w-6 h-6 text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+                >
+                  {expanded[guideline.id] ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
+                </button>
+
+                <span className="font-semibold text-gray-900 min-w-[60px]">{guideline.id}</span>
+
+                <div className="flex gap-2 ml-auto">
+                  <button
+                    onClick={() => setItemStatus(guideline.id, status[guideline.id] === 'complete' ? null : 'complete')}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      status[guideline.id] === 'complete'
+                        ? 'bg-green-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    Complete
+                  </button>
+                  <button
+                    onClick={() => setItemStatus(guideline.id, status[guideline.id] === 'incomplete' ? null : 'incomplete')}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      status[guideline.id] === 'incomplete'
+                        ? 'bg-red-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    Incomplete
+                  </button>
+                </div>
+              </div>
+
+              {expanded[guideline.id] && (
+                <div className="px-4 pb-4 border-t border-gray-100 pt-4 bg-gray-50">
+                  <p className="text-sm text-gray-700 leading-relaxed">{guideline.desc}</p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-8 text-center text-sm text-gray-500">
+          <p>Reference: <a href="https://developer.apple.com/app-store/review/guidelines/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Apple App Store Review Guidelines</a></p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AppReviewChecker;
