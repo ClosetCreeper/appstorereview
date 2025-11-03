@@ -339,4 +339,172 @@
     }
     .summary {
       display: grid;
-      grid-template-columns: repeat(3, 1fr
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin: 20px 0;
+    }
+    .summary-card {
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .summary-card h3 {
+      font-size: 2em;
+      margin: 0 0 5px 0;
+    }
+    .summary-card p {
+      margin: 0;
+      font-size: 0.9em;
+    }
+    .complete-card { background: #d1f4e0; color: #1e7e34; }
+    .incomplete-card { background: #ffe5e5; color: #c82333; }
+    .not-reviewed-card { background: #fff3cd; color: #856404; }
+    .item {
+      padding: 12px 0;
+      border-bottom: 1px solid #e5e5e5;
+    }
+    .item-id {
+      font-weight: 600;
+      margin-right: 8px;
+      color: #0071e3;
+    }
+    .item-desc {
+      color: #1d1d1f;
+      margin-top: 5px;
+      display: block;
+    }
+    .check { color: #34c759; font-weight: bold; margin-right: 8px; }
+    .cross { color: #ff3b30; font-weight: bold; margin-right: 8px; }
+    .warning { color: #ff9500; font-weight: bold; margin-right: 8px; }
+    .footer {
+      margin-top: 50px;
+      padding-top: 20px;
+      border-top: 1px solid #d2d2d7;
+      color: #86868b;
+      font-size: 0.9em;
+    }
+    .section {
+      margin: 30px 0;
+      page-break-inside: avoid;
+    }
+    .print-button {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 24px;
+      background: #0071e3;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .print-button:hover {
+      background: #0077ED;
+    }
+  </style>
+</head>
+<body>
+  <button class="print-button no-print" onclick="window.print()">🖨️ Print / Save as PDF</button>
+  
+  <h1>App Store Review Guidelines Checklist</h1>
+  <div class="meta">
+    <p><strong>Version:</strong> ${version || 'Not specified'}</p>
+    <p><strong>Date:</strong> ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+  </div>
+  
+  <div class="summary">
+    <div class="summary-card complete-card">
+      <h3>${completeItems.length}</h3>
+      <p>Complete</p>
+    </div>
+    <div class="summary-card incomplete-card">
+      <h3>${incompleteItems.length}</h3>
+      <p>Incomplete</p>
+    </div>
+    <div class="summary-card not-reviewed-card">
+      <h3>${notReviewedItems.length}</h3>
+      <p>Not Reviewed</p>
+    </div>
+  </div>
+`;
+
+      if (incompleteItems.length > 0) {
+        reportContent += `
+  <div class="section">
+    <h2>⚠️ Incomplete Items (Requires Attention)</h2>`;
+        incompleteItems.forEach(([id, _]) => {
+          const item = guidelines.find(g => g.id === id);
+          if (item) {
+            reportContent += `
+    <div class="item">
+      <span class="cross">✗</span>
+      <span class="item-id">${item.id}</span>
+      <span class="item-desc">${item.desc}</span>
+    </div>`;
+          }
+        });
+        reportContent += `
+  </div>`;
+      }
+
+      if (completeItems.length > 0) {
+        reportContent += `
+  <div class="section">
+    <h2>✓ Complete Items</h2>`;
+        completeItems.forEach(([id, _]) => {
+          const item = guidelines.find(g => g.id === id);
+          if (item) {
+            reportContent += `
+    <div class="item">
+      <span class="check">✓</span>
+      <span class="item-id">${item.id}</span>
+      <span class="item-desc">${item.desc}</span>
+    </div>`;
+          }
+        });
+        reportContent += `
+  </div>`;
+      }
+
+      if (notReviewedItems.length > 0) {
+        reportContent += `
+  <div class="section">
+    <h2>⏸ Not Yet Reviewed</h2>`;
+        notReviewedItems.forEach((item) => {
+          reportContent += `
+    <div class="item">
+      <span class="warning">○</span>
+      <span class="item-id">${item.id}</span>
+      <span class="item-desc">${item.desc}</span>
+    </div>`;
+        });
+        reportContent += `
+  </div>`;
+      }
+
+      reportContent += `
+  <div class="footer">
+    <p>This checklist is based on Apple's App Store Review Guidelines</p>
+    <p>Reference: https://developer.apple.com/app-store/review/guidelines/</p>
+  </div>
+</body>
+</html>`;
+
+      const printWindow = window.open('', '_blank', 'width=900,height=800');
+      if (printWindow) {
+        printWindow.document.write(reportContent);
+        printWindow.document.close();
+      } else {
+        alert('Please allow pop-ups to export the PDF report.');
+      }
+    }
+
+    // Initialize
+    renderGuidelines();
+    updateCounts();
+  </script>
+</body>
+</html>
